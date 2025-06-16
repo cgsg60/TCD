@@ -1,129 +1,89 @@
-let gl;
+let tcd;
 let startTime;
+let x = 0;
 
-function initGL(canvas) {
-  gl = canvas.getContext("webgl2");
-  gl.viewportWidth = canvas.width;
-  gl.viewportHeight = canvas.height;
+let IsRight = IsLeft = false;
+
+function initGFX(canvas) {
+  tcd = canvas.getContext("2d");
+
+  const textureImage = new Image();
+  textureImage.src = 'background.jpg';
+
+  textureImage.onload = () => {
+    let img = document.getElementById("background");
+    tcd.drawImage(img, 0, 0, 1900, 900);
+  };
 }
 
-const shaderFs = `#version 300 es
-precision highp float;
-layout (location = 0) out vec4 o_color;
-
-uniform float u_time;
-
-void main()
-{
-  o_color = vec4(1, 1, 0, 1);
-}`;
-
-const shaderVs = `#version 300 es
-precision highp float;
-
-layout (location = 0) in vec2 InPosition;
-
-void main() {
-  gl_Position = vec4(InPosition, 0, 1);
-}`;
-
-function getShader(shaderStr, type) {
-const shader = gl.createShader(type);
-
-gl.shaderSource(shader, shaderStr);
-gl.compileShader(shader);
-
-if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-  alert(gl.getShaderInfoLog(shader));
-}
-
-return shader;
-}
-
-let u_time_location;
-
-function initShaders() {
-function loadShaderText(uri) {
-  return fetch(uri)
-  .then((response) => {
-      if (!response.ok) {
-      throw "Resource not found";
-      }
-      return response.text();
-  })
-  .then((text) => {
-      return text;
-  });
-}
-
-Promise.all([
-  loadShaderText("vertex.glsl"),
-  loadShaderText("fragment.glsl"),
-])
-  .then((shaders) => {
-  console.log(shaders);
-  })
-  .catch((error) => {
-  console.log(error);
-  });
-
-const fs = getShader(shaderFs, gl.FRAGMENT_SHADER);
-const vs = getShader(shaderVs, gl.VERTEX_SHADER);
-
-const program = gl.createProgram();
-gl.attachShader(program, vs);
-gl.attachShader(program, fs);
-gl.linkProgram(program);
-
-if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-  alert("Program linkage error");
-}
-
-gl.useProgram(program);
-
-u_time_location = gl.getUniformLocation(program, "u_time");
-}
-
-let vertexBuffer;
-
-function initBuffer() {
-  vertexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  vertices = [-1, -1, 3, -1, -1, 3];
-  gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array(vertices),
-      gl.STATIC_DRAW
-  );
-}
-
-function drawScene() {
-  gl.clearColor(0, 0, 0, 1);
-  gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
+function drawScene(canvas) {
   timeFromStart = new Date().getTime() - startTime;
 
-  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  tcd.clearRect(0, 0, canvas.width, canvas.height);
+
+  //background
+  let img = document.getElementById("background");
+  tcd.drawImage(img, 0, 0, 1900, 900);
+
+  tcd.fillStyle = 'Blue';
+//  tcd.fillRect(x, 100, 50, 50);  
+
+  img = document.getElementById("avatar");
+
+  tcd.beginPath();
+  tcd.arc(x, 100, 25, 0, Math.PI * 2);
+  tcd.closePath();
+  tcd.clip();
+  tcd.drawImage(img, x - 25, 100 - 25, 50, 50);
+
+  /*tcd.beginPath();
+  tcd.arc(150, 150, 100, 0, Math.PI * 2);
+  tcd.fillStyle = 'black';
+  tcd.fill();
+  tcd.globalCompositeOperation = 'source-in';
+
+  tcd.globalCompositeOperation = 'source-over';*/
+  
+
+  if (IsRight)
+    x += 2;
+  if (IsLeft)
+    x -= 2;
+
   window.requestAnimationFrame(drawScene);
 }
 
 function onStart() {
-  let canvas = document.getElementById("webgl-canvas");
+  let canvas = document.getElementById("tcd-canvas");
+  canvas.width = 1900;
+  canvas.height = 900;
 
-  canvas.onkeydown = (ev) => {
-    if (ev.KeyA)
-      console.log("A");
+  window.onkeydown = (event) => {
+    if (event.code == "KeyA")
+      IsLeft = true;
+    else if (event.code == "KeyS")
+      console.log("S");
+    else if (event.code == "KeyD")
+      IsRight = true;
+    else if (event.code == "Space")
+      console.log("space");    
   };
 
-  initGL(canvas);
-  initShaders();
-  initBuffer();
+  window.onkeyup = (event) => {
+    if (event.code == "KeyA")
+      IsLeft = false;
+    else if (event.code == "KeyS")
+      console.log("S");
+    else if (event.code == "KeyD")
+      IsRight = false;
+    else if (event.code == "Space")
+      console.log("space");    
+  };
+
+
+  initGFX(canvas);
 
   startTime = new Date().getTime();
 
-  drawScene();
+  drawScene(canvas);
 }

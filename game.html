@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel = "stylesheet" src = "style.css"></link>
     <script type="text/javascript" src="render.js"></script>
     <!--<script type="text/javascript" src="math.js"></script>
     <script type="text/javascript" src="lib2.js"></script> -->
@@ -9,13 +10,16 @@
       <div style="display: flex;">
         <div>
           <canvas
-          id="webgl-canvas"
+          id="tcd-canvas"
           style="border: none"
           width="1900px"
           height="900px"
-          ></canvas>
+          ></canvas>        
+          <img id = "background" src = "background.jpg" style = "display: none;"></img>
+          <img id = "avatar" src = "https://www.gravatar.com/avatar/36c6e4f9377b320154f8d7ff6cfb7a33?d=404" style = "display: none; border-radius: 50%; width: 50px; height: 50px;
+"></img>
         </div>
       </div>
-      <button onclick="document.location='/SUM2025/TCD/menu.html'">Go to menu</button>
+      <button onclick="document.location='/SUM2025/TCD/index.html'">Go to menu</button>
     </body>
 </html>
