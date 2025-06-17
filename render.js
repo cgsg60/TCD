@@ -5,10 +5,18 @@ let ground, ava;
 
 let IsRight = IsLeft = IsUp = IsDown = false;
 
-function isColliding(obj) {
-  let pixels = din.getImageData(80, 80, 50, 50);
+let player = {
+  x: 200,
+  y: 500,
+  width: 50,
+  height: 50,
+  img: ava
+}
 
-  for (let i = 3; i < pixels.data.length; i += 4) {
+function isColliding(obj) {
+  let pixels = din.getImageData(obj.x, obj.y, obj.width, obj.height).data;
+
+  for (let i = 3; i < pixels.length; i += 4) {
     if (pixels[i] > 0) {
       return true;
     }
@@ -35,7 +43,7 @@ function initGFX(canvas, dincanvas) {
     stc.drawImage(img, 0, 0, 1900, 900);
     
     ground = document.getElementById("land1");
-    ground.crossOrigin = "Anonymous"
+    //ground.crossOrigin = "Anonymous"
     din.drawImage(ground, 0, 0, 1900, 900);  
   };
 }
@@ -52,8 +60,8 @@ function drawScene(canvas, dincanvas) {
 
   //stc.drawImage(dincanvas, 0, 0);
 
-  ava = document.getElementById("avatar");
-  stc.drawImage(ava, x + 200, y + 500, 50, 50);
+  player.img = document.getElementById("avatar");
+  stc.drawImage(player.img, player.x, player.y, 50, 50);
 
 /*
   stc.beginPath();
@@ -70,17 +78,17 @@ function drawScene(canvas, dincanvas) {
 
   stc.globalCompositeOperation = 'source-over';*/
   
-  if (isColliding(ava))
-    console.log("colliding!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  if (isColliding(player))
+    console.log("collide");
 
   if (IsRight)
-    x += 2;
+    player.x += 2;
   if (IsLeft)
-    x -= 2;
+    player.x -= 2;
   if (IsDown)
-    y += 2;
+    player.y += 2;
   if (IsUp)
-    y -= 2;
+    player.y -= 2;
 
   window.requestAnimationFrame(drawScene);
 }
