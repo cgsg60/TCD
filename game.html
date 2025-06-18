@@ -1,32 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link rel = "stylesheet" src = "style.css"></link>
-    <script type="text/javascript" src="render.js"></script>
-    <!--<script type="text/javascript" src="math.js"></script>
-    <script type="text/javascript" src="lib2.js"></script> -->
-  </html>
-    <body onload="onStart();">
-      <div style="display: flex;">
-        <div>
-          <canvas
-          id="static-canvas"
-          style="border: none; position: absolute; top: 0; left: 0;"
-          width="1900px"
-          height="900px"
-          ></canvas>        
-          <canvas
-          id="dinamic-canvas"
-          style="border: none; position: absolute; top: 0; left: 0;"
-          width="1900px"
-          height="900px"
-          ></canvas>        
-          <img id = "background" src = "background.jpg" style = "display: none;"></img>
-          <img id = "land1" src = "land1.png" style = "display: none;"></img>
-          <img id = "avatar" src = "https://www.gravatar.com/avatar/36c6e4f9377b320154f8d7ff6cfb7a33?d=404" style = "display: none; border-radius: 50%; width: 50px; height: 50px;
+
+<head>
+  <link rel="stylesheet" src="style.css">
+  </link>
+  <script type="module" src="main.js"></script>
+  <!-- <script type="text/javascript" src="timer.js"></script>
+  <script type="text/javascript" src="input.js"></script> -->
+
+</html>
+
+<body onload="onStart();">
+  <div style="display: flex;">
+    <div>
+      <canvas id="static-canvas" style="border: none; position: absolute; top: 0; left: 0;" width="1900px"
+        height="900px"></canvas>
+      <canvas id="dinamic-canvas" style="border: none; position: absolute; top: 0; left: 0;" width="1900px"
+        height="900px"></canvas>
+      <img id="background" src="background.jpg" style="display: none;"></img>
+      <img id="land1" src="land1.png" style="display: none;"></img>
+      <img id="avatar" src="https://www.gravatar.com/avatar/36c6e4f9377b320154f8d7ff6cfb7a33?d=404" style="display: none; border-radius: 50%; width: 50px; height: 50px;
 "></img>
-        </div>
-      </div>
-      <button onclick="document.location='/SUM2025/TCD/index.html'">Go to menu</button>
-    </body>
+    </div>
+  </div>
+  <button onclick="document.location='/SUM2025/TCD/index.html'">Go to menu</button>
+</body>
+
 </html>
