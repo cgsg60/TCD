@@ -6,14 +6,14 @@ let ground, ava;
 export let stc;
 
 let player = {
-  x: 200,
+  x: 500,
   y: 500,
   width: 50,
   height: 50,
   img: ava
 }
 
-let timer = new Timer()
+export let timer = new Timer()
 
 export function initGFX(canvas, dincanvas) {
   stc = canvas.getContext("2d");
@@ -43,6 +43,7 @@ export function drawScene(canvas, dincanvas) {
 
   //background
   let img = document.getElementById("background");
+
   stc.drawImage(img, 0, 0, 1900, 900);
 
   //stc.drawImage(dincanvas, 0, 0);

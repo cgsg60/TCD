@@ -52,7 +52,7 @@ export class input {
       "ArrowDown", "Shift", "Control", "Alt", "ShiftLeft", "ShiftRight", "ControlLeft",
       "ControlRight", "PageUp", "PageDown", "End", "Home",
       "Digit0", "Digit1",
-      "KeyA",
+      "KeyA", "KeyD", "KeyW", "KeyS",
       "Numpad0", "NumpadMultiply",
       "F1",
     ].forEach(key => {
