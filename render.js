@@ -8,8 +8,8 @@ export let stc;
 let player = {
   x: 500,
   y: 500,
-  width: 50,
-  height: 50,
+  width: 25,
+  height: 25,
   img: ava
 }
 
@@ -39,7 +39,7 @@ export function drawScene(canvas, dincanvas) {
   stc.clearRect(0, 0, canvas.width, canvas.height);
   din.clearRect(0, 0, canvas.width, canvas.height);
 
-  simulation(player, null, din);
+  simulation(player, din);
 
   //background
   let img = document.getElementById("background");
@@ -48,9 +48,15 @@ export function drawScene(canvas, dincanvas) {
 
   //stc.drawImage(dincanvas, 0, 0);
 
+  // Рисуем изображение
   player.img = document.getElementById("avatar");
-  stc.drawImage(player.img, player.x, player.y, 50, 50);
-
+  stc.beginPath();
+  stc.arc(player.x + player.width * 0.5, player.y + player.height * 0.5, player.width * 0.5, 0, Math.PI * 2);
+  stc.closePath();
+  stc.save();
+  stc.clip();
+  stc.drawImage(player.img, player.x, player.y, player.width, player.height);
+  stc.restore();
   /*
     stc.beginPath();
     stc.arc(x, 100, 25, 0, Math.PI * 2);
