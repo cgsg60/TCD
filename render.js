@@ -1,9 +1,9 @@
-let stc, din;
-let startTime;
-let x = 0, y = 0;
+import { Timer } from "./timer.js";
+import { simulation } from "./physics.js";
+import { physics_init } from "./physics.js";
+let din;
 let ground, ava;
-
-let IsRight = IsLeft = IsUp = IsDown = false;
+export let stc;
 
 let player = {
   x: 200,
@@ -13,25 +13,9 @@ let player = {
   img: ava
 }
 
-function isColliding(obj) {
-  let pixels = din.getImageData(obj.x, obj.y, obj.width, obj.height).data;
+let timer = new Timer()
 
-  for (let i = 3; i < pixels.length; i += 4) {
-    if (pixels[i] > 0) {
-      return true;
-    }
-  }
-  return false; 
-  // try {
-  //   const imageData = din.getImageData(0, 0, 500, 500);
-  //   console.log(imageData.data);
-  // } catch (e) {
-  //   console.error('Ошибка доступа к данным:', e.message);
-  //   // Альтернативная логика обработки
-  // }
-}
-
-function initGFX(canvas, dincanvas) {
+export function initGFX(canvas, dincanvas) {
   stc = canvas.getContext("2d");
   din = dincanvas.getContext("2d");
 
@@ -41,18 +25,21 @@ function initGFX(canvas, dincanvas) {
   textureImage.onload = () => {
     let img = document.getElementById("background");
     stc.drawImage(img, 0, 0, 1900, 900);
-    
+
     ground = document.getElementById("land1");
     //ground.crossOrigin = "Anonymous"
-    din.drawImage(ground, 0, 0, 1900, 900);  
+    din.drawImage(ground, 0, 0, 1900, 900);
   };
 }
 
-function drawScene(canvas, dincanvas) {
-  timeFromStart = new Date().getTime() - startTime;
+export function drawScene(canvas, dincanvas) {
+
+  timer.response();
 
   stc.clearRect(0, 0, canvas.width, canvas.height);
   din.clearRect(0, 0, canvas.width, canvas.height);
+
+  simulation(player, null, din);
 
   //background
   let img = document.getElementById("background");
@@ -63,13 +50,13 @@ function drawScene(canvas, dincanvas) {
   player.img = document.getElementById("avatar");
   stc.drawImage(player.img, player.x, player.y, 50, 50);
 
-/*
-  stc.beginPath();
-  stc.arc(x, 100, 25, 0, Math.PI * 2);
-  stc.closePath();
-  stc.clip();
-  stc.drawImage(img, x - 25, 100 - 25, 50, 50);
-*/
+  /*
+    stc.beginPath();
+    stc.arc(x, 100, 25, 0, Math.PI * 2);
+    stc.closePath();
+    stc.clip();
+    stc.drawImage(img, x - 25, 100 - 25, 50, 50);
+  */
   /*stc.beginPath();
   stc.arc(150, 150, 100, 0, Math.PI * 2);
   stc.fillStyle = 'black';
@@ -77,63 +64,20 @@ function drawScene(canvas, dincanvas) {
   stc.globalCompositeOperation = 'source-in';
 
   stc.globalCompositeOperation = 'source-over';*/
-  
-  if (isColliding(player))
-    console.log("collide");
-
-  if (IsRight)
-    player.x += 2;
-  if (IsLeft)
-    player.x -= 2;
-  if (IsDown)
-    player.y += 2;
-  if (IsUp)
-    player.y -= 2;
 
   window.requestAnimationFrame(drawScene);
 }
 
-function onStart() {
+export function onStart() {
   let canvas = document.getElementById("static-canvas");
   canvas.width = 1900;
   canvas.height = 900;
   let dincanvas = document.getElementById("dinamic-canvas");
   dincanvas.width = canvas.width;
   dincanvas.height = canvas.height;
- 
-  window.onkeydown = (event) => {
-    if (event.code == "KeyA")
-      IsLeft = true;
-    else if (event.code == "KeyS")
-      IsDown = true;
-    else if (event.code == "KeyD")
-      IsRight = true;
-    else if (event.code == "Space")
-      IsUp = true;    
-  };
-
-  window.onkeyup = (event) => {
-    if (event.code == "KeyA")
-      IsLeft = false;
-    else if (event.code == "KeyS")
-      IsDown = false;  
-    else if (event.code == "KeyD")
-      IsRight = false;
-    else if (event.code == "Space")
-      IsUp = false;    
-  };
-  window.onmousedown = (event) => {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = 50;
-
-    din.clearRect(event.x - 26, event.y - 26, 52, 52);
-  }
-
 
   initGFX(canvas, dincanvas);
-
-  startTime = new Date().getTime();
+  physics_init();
 
   drawScene(canvas, dincanvas);
 }
