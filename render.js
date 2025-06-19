@@ -80,12 +80,7 @@ export function initGFX(canvas, dyncanvas) {
 
     /* Set landscape */
     ground = document.getElementById("land1");
-<<<<<<< HEAD
-    //ground.crossOrigin = "Anonymous"
-    din.drawImage(ground, 0, 0, 1900, 3900);
-=======
     dyn.drawImage(ground, 0, 0, 1900, 900);
->>>>>>> 152a2ae9d3cc79b9aedb0c3a3e8730ba515c23e9
   };
 } /* End of 'initGFX' function */
 
@@ -110,12 +105,7 @@ export function drawScene(canvas, dyncanvas) {
 
   /* Set static background image */
   let img = document.getElementById("background");
-<<<<<<< HEAD
-
-  stc.drawImage(img, 0, 0, 1900, 3900);
-=======
   stc.drawImage(img, 0, 0, 1900, 900);
->>>>>>> 152a2ae9d3cc79b9aedb0c3a3e8730ba515c23e9
 
   /* Set static player image */
   player.img = document.getElementById("avatar");
