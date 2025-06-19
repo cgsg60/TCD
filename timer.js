@@ -1,3 +1,22 @@
+/***************************************************************
+ * Copyright (C) 2025
+ *    Computer Graphics Support Group of 30 Phys-Math Lyceum
+ ***************************************************************/
+
+/* FILE NAME   : timer.js
+ * PURPOSE     : Tough Cave Divers project.
+ *               Timer module.
+ * PROGRAMMER  : CGSG'2024.
+ *               Arsentev Artemy (AA4),
+ *               Nechaev Vladimir (VN4).
+ * LAST UPDATE : 18.06.2025
+ * NOTE        : Module prefix 'tcd'.
+ *
+ * No part of this file may be changed without agreement of
+ * Computer Graphics Support Group of 30 Phys-Math Lyceum
+ */
+
+/* EXAMPLE OF USAGE */
 ////////////////////////////
 // Timer class module
 ////////////////////////////
@@ -16,9 +35,14 @@
 //      or myTimer.response('fps'); -- update FPS automatically
 //  </scrpt>
 
-// Timer class constructor function
+/* Timer function.
+ * ARGUMENTS:
+ *   None.
+ * RETURNS:
+ *   (OBJ) Timer.
+ */
 export function Timer() {
-  // Timer obtain current time in seconds method
+  /* Timer obtain current time in seconds method */
   const getTime = () => {
     const date = new Date();
     let t =
@@ -28,13 +52,13 @@ export function Timer() {
     return t;
   };
 
-  // Timer response method
+  /* Timer response method */
   this.response = (tag_id = null) => {
     let t = getTime();
-    // Global time
+    /* Global time */
     this.globalTime = t;
     this.globalDeltaTime = t - this.oldTime;
-    // Time with pause
+    /* Time with pause */
     if (this.isPause) {
       this.localDeltaTime = 0;
       this.pauseTime += t - this.oldTime;
@@ -42,7 +66,7 @@ export function Timer() {
       this.localDeltaTime = this.globalDeltaTime;
       this.localTime = t - this.pauseTime - this.startTime;
     }
-    // FPS
+    /* FPS */
     this.frameCounter++;
     if (t - this.oldTimeFPS > 3) {
       this.FPS = this.frameCounter / (t - this.oldTimeFPS);
@@ -54,14 +78,14 @@ export function Timer() {
     this.oldTime = t;
   };
 
-  // Obtain FPS as string method
+  /* Obtain FPS as string method */
   this.getFPS = () => this.FPS.toFixed(3);
 
-  // Fill timer global data
+  /* Fill timer global data */
   this.globalTime = this.localTime = getTime();
   this.globalDeltaTime = this.localDeltaTime = 0;
 
-  // Fill timer semi global data
+  /* Fill timer semi global data */
   this.startTime = this.oldTime = this.oldTimeFPS = this.globalTime;
   this.frameCounter = 0;
   this.isPause = false;
@@ -69,4 +93,6 @@ export function Timer() {
   this.pauseTime = 0;
 
   return this;
-} // End of 'Timer' function
+} /* End of 'Timer' function */
+
+/* END OF 'timer.js' FILE */
