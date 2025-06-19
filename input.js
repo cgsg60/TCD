@@ -1,12 +1,46 @@
+/***************************************************************
+ * Copyright (C) 2025
+ *    Computer Graphics Support Group of 30 Phys-Math Lyceum
+ ***************************************************************/
 
-const D2R = degrees => degrees * Math.PI / 180;
-const R2D = radians => radians * 180 / Math.PI;
+/* FILE NAME   : input.js
+ * PURPOSE     : Tough Cave Divers project.
+ *               Input module.
+ * PROGRAMMER  : CGSG'2024.
+ *               Arsentev Artemy (AA4),
+ *               Nechaev Vladimir (VN4).
+ * LAST UPDATE : 18.06.2025
+ * NOTE        : Module prefix 'tcd'.
+ *
+ * No part of this file may be changed without agreement of
+ * Computer Graphics Support Group of 30 Phys-Math Lyceum
+ */
 
+const D2R = degrees => degrees * Math.PI / 180; /* Translate degrees to radians */
+const R2D = radians => radians * 180 / Math.PI; /* Translate radians to degrees */
+
+/* Count distance between 2 points function.
+ * ARGUMENTS:
+ *   - first point:
+ *       p1;
+ *   - second point:
+ *       p2;
+ * RETURNS:
+ *   (vector) new vector.
+ */
 function distance(p1, p2) {
   return Math.sqrt(Math.pow(p1.clientX - p2.clientX, 2) + Math.pow(p1.clientY - p2.clientY, 2));
-}
+} /* End of 'distance' function */
 
+/* Input class */
 export class input {
+  /* Input contsructor function.
+  * ARGUMENTS:
+  *   - context:
+  *       stk;
+  * RETURNS:
+  *   (VOID) None.
+  */
   constructor(stk) {
     //gl.canvas.addEventListener('click', (e) => this.onClick(e));
     stk.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
@@ -19,7 +53,6 @@ export class input {
       stk.canvas.addEventListener('touchmove', (e) => this.onTouchMove(e));
       stk.canvas.addEventListener('touchend', (e) => this.onTouchEnd(e));
     }
-
 
     window.addEventListener('keydown', (e) => this.onKeyDown(e));
     window.addEventListener('keyup', (e) => this.onKeyUp(e));
@@ -66,13 +99,25 @@ export class input {
     this.ctrlKey = false;
 
     this.isFirst = true;
-  } // End of 'constructor' function
+  } /* End of 'constructor' function */
 
-  /// Mouse handle functions
-
+  /* Click function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onClick(e) {
-  } // End of 'onClick' function
+  } /* End of 'onClick' function */
 
+  /* Touch start function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onTouchStart(e) {
     if (e.touches.length == 1)
       this.mButtons[0] = 1;
@@ -104,8 +149,15 @@ export class input {
       this.scaling = false;
     }
     //vg.log(`Zoom start: issc:${this.scaling}`);
-  } // End of 'onTouchStart' function
+  } /* End of 'onTouchStart' function */
 
+  /* Touch move function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onTouchMove(e) {
     e.preventDefault();
 
@@ -159,8 +211,15 @@ export class input {
       this.mX = x;
       this.mY = y;
     }
-  } // End of 'onTouchMove' function
+  } /* End of 'onTouchMove' function */
 
+  /* Touch end function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onTouchEnd(e) {
     this.mButtons[0] = 0;
     this.mButtons[1] = 0;
@@ -192,8 +251,15 @@ export class input {
       this.scaling = true;
     }
     //vg.log(`Zoom end: issc:${this.scaling} (mZ: ${this.mZ})`);
-  } // End of 'onTouchMove' function
+  } /* End of 'onTouchMove' function */
 
+  /* Mouse move function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onMouseMove(e) {
     let
       dx = e.movementX,
@@ -203,14 +269,28 @@ export class input {
     this.mDz = 0;
     this.mX += dx;
     this.mY += dy;
-  } // End of 'onMouseMove' function
+  } /* End of 'onMouseMove' function */
 
+  /* Mouse wheel function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onMouseWheel(e) {
     if (e.wheelDelta != 0)
       e.preventDefault();
     this.mZ += (this.mDz = e.wheelDelta / 120);
-  } // End of 'onMouseWheel' function
+  } /* End of 'onMouseWheel' function */
 
+  /* Mouse down function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onMouseDown(e) {
     e.preventDefault();
     this.mDx = 0;
@@ -224,8 +304,15 @@ export class input {
     this.shiftKey = e.shiftKey;
     this.altKey = e.altKey;
     this.ctrlKey = e.ctrlKey;
-  } // End of 'onMouseMove' function
+  } /* End of 'onMouseMove' function */
 
+  /* Mouse down function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onMouseUp(e) {
     e.preventDefault();
     this.mDx = 0;
@@ -239,9 +326,15 @@ export class input {
     this.shiftKey = e.shiftKey;
     this.altKey = e.altKey;
     this.ctrlKey = e.ctrlKey;
-  } // End of 'onMouseMove' function
+  } /* End of 'onMouseMove' function */
 
-  /// Keyboard handle
+  /* Key down function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onKeyDown(e) {
     if (e.target.tagName.toLowerCase() == 'textarea')
       return;
@@ -262,8 +355,15 @@ export class input {
     this.shiftKey = e.shiftKey;
     this.altKey = e.altKey;
     this.ctrlKey = e.ctrlKey;
-  } // End of 'onKeyDown' function
+  } /* End of 'onKeyDown' function */
 
+  /* Key up function.
+  * ARGUMENTS:
+  *   - event:
+  *       e;
+  * RETURNS:
+  *   (VOID) None.
+  */
   onKeyUp(e) {
     if (e.target.tagName.toLowerCase() == 'textarea')
       return;
@@ -284,9 +384,14 @@ export class input {
     this.shiftKey = e.shiftKey;
     this.altKey = e.altKey;
     this.ctrlKey = e.ctrlKey;
-  } // End of 'onKeyUp' function
+  } /* End of 'onKeyUp' function */
 
-  /// Camera movement handling
+  /* Reset input function.
+  * ARGUMENTS:
+  *   None.
+  * RETURNS:
+  *   (VOID) None.
+  */
   reset() {
     //vg.log(`MsDz: ${this.mDz}`);
     this.mDx = 0;
@@ -298,5 +403,7 @@ export class input {
     this.shiftKey = this.keys["ShiftLeft"] || this.keys["ShiftRight"];
     this.altKey = this.keys["AltLeft"] || this.keys["AltRight"];
     this.ctrlKey = this.keys["ControlLeft"] || this.keys["ControlRight"];
-  } // End of reset' function
-} // End of 'input' class
+  } /* End of reset' function */
+} /* End of 'input' class */
+
+/* END OF 'input.js' FILE */
