@@ -26,7 +26,7 @@ const R2D = radians => radians * 180 / Math.PI; /* Translate radians to degrees 
  *   - second point:
  *       p2;
  * RETURNS:
- *   (vector) new vector.
+ *   (NUM) distance.
  */
 function distance(p1, p2) {
   return Math.sqrt(Math.pow(p1.clientX - p2.clientX, 2) + Math.pow(p1.clientY - p2.clientY, 2));
