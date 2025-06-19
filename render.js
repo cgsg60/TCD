@@ -51,6 +51,11 @@ class Resources {
   DrawImg(canvasCTX) {
     canvasCTX.drawImage(this.ctx, this.x, this.y, this.w, this.h);
   }
+  x: 500,
+  y: 500,
+  width: 25,
+  height: 25,
+  img: ava
 }
 
 export let timer = new Timer() /* Timer */
@@ -101,7 +106,7 @@ export function drawScene(canvas, dyncanvas) {
   dyn.clearRect(0, 0, canvas.width, canvas.height);
 
   /* Enable player simulation module */
-  simulation(player, null, dyn);
+  simulation(player, din);
 
   /* Set static background image */
   let img = document.getElementById("background");
@@ -109,8 +114,13 @@ export function drawScene(canvas, dyncanvas) {
 
   /* Set static player image */
   player.img = document.getElementById("avatar");
-  stc.drawImage(player.img, player.x, player.y, 50, 50);
-
+  stc.beginPath();
+  stc.arc(player.x + player.width * 0.5, player.y + player.height * 0.5, player.width * 0.5, 0, Math.PI * 2);
+  stc.closePath();
+  stc.save();
+  stc.clip();
+  stc.drawImage(player.img, player.x, player.y, player.width, player.height);
+  stc.restore();
   /*
     stc.beginPath();
     stc.arc(x, 100, 25, 0, Math.PI * 2);

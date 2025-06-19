@@ -84,6 +84,19 @@ function lenvector(V1) {
   return Math.sqrt(V1.x * V1.x + V1.y * V1.y);
 } /* End of 'lenvector' function */
 
+/* Count distance between 2 vectors function.
+ * ARGUMENTS:
+ *   - first vector:
+ *       V1;
+ *   - second vector:
+ *       V2;
+ * RETURNS:
+ *   (NUM) distance.
+ */
+function dist(V1, V2) {
+  return Math.sqrt((V1.x - V2.x) * (V1.x - V2.x) + (V1.y - V2.y) * (V1.y - V2.y));
+}
+
 /* Check function.
  * ARGUMENTS:
  *   - object thath:
@@ -108,10 +121,18 @@ function isColliding(obj, Land, avgpoint) {
 
   for (let i = 3; i < pixels.length; i += 4) {
     if (pixels[i] > 0) {
-      flag = true;
-      V = multvector(sumvectors(V, new vector(pixels[i].x, pixels[i].y)), 0.5)
+      const I = Math.floor(i / 4);
+      const rx = I % w;
+      const ry = Math.floor(I / w);
+      if (dist(new vector(x + rx, y + ry), new vector(x + w * 0.5, y + h * 0.5)) <= w * 0.5) {
+        flag = true;
+        V = multvector(sumvectors(V, new vector(x + rx, y + ry)), 0.5)
+      }
     }
   }
+
+  avgpoint.x = V.x;
+  avgpoint.y = V.y;
   avgpoint = V;
 
   return flag;
@@ -136,28 +157,31 @@ export function physics_init() {
  * RETURNS:
  *   (VOID) None.
  */
-export function simulation(obj_1, obj_2, land) {
+export function simulation(obj_1, land) {
   let avgV = new vector(0, 0)
-  let R1 = new vector(obj_1.x + (obj_1.width - obj_1.x) * 0.5, obj_1.y + (obj_1.height - obj_1.y) * 0.5);
+  let R1 = new vector(obj_1.x + obj_1.width * 0.5, obj_1.y + obj_1.height * 0.5);
+  let a = 0;
 
-  obj_1.x -= input_cont.keys['KeyA'];
-  obj_1.x += input_cont.keys['KeyD'];
-  obj_1.y -= input_cont.keys['KeyW'];
-  obj_1.y += input_cont.keys['KeyS'];
+  obj_1.x -= 2 * input_cont.keys['KeyA'];
+  obj_1.x += 2 * input_cont.keys['KeyD'];
+  obj_1.y -= 2 * input_cont.keys['KeyW'];
+  obj_1.y += 2 * input_cont.keys['KeyS'];
 
-
-  if (isColliding(obj_1, land, avgV)) {
-    let v = multvector(subvectors(R1, avgV), 1.0 / lenvector(subvectors(R1, avgV)))
-    velocity = 0;
-    obj_1.x -= v.x, obj_1.y -= v.y
-    if (input_cont.keysClick['Space'] == 1) {
-      velocity -= 50 * g * timer.globalDeltaTime;
+  for (let i = 0; i < 52; i++) {
+    if (isColliding(obj_1, land, avgV)) {
+      let N = subvectors(R1, avgV)
+      velocity = 0;
+      N = multvector(N, 0.5 / lenvector(N))
+      obj_1.x += N.x, obj_1.y += N.y;
+      if (input_cont.keysClick['Space'] == 1) {
+        velocity -= 50 * g * timer.globalDeltaTime;
+      }
     }
-
   }
-  console.log(obj_1.x, obj_1.y)
   velocity += g * timer.globalDeltaTime;
   obj_1.y -= velocity * timer.globalDeltaTime;
- } /* End of 'simulation' function */
+
+  console.log("velocity:", velocity, "   acceleration:", a)
+} /* End of 'simulation' function */
 
 /* END OF 'physics.js' FILE */
