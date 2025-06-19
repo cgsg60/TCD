@@ -28,7 +28,7 @@ export function initGFX(canvas, dincanvas) {
 
     ground = document.getElementById("land1");
     //ground.crossOrigin = "Anonymous"
-    din.drawImage(ground, 0, 0, 1900, 900);
+    din.drawImage(ground, 0, 0, 1900, 3900);
   };
 }
 
@@ -44,7 +44,7 @@ export function drawScene(canvas, dincanvas) {
   //background
   let img = document.getElementById("background");
 
-  stc.drawImage(img, 0, 0, 1900, 900);
+  stc.drawImage(img, 0, 0, 1900, 3900);
 
   //stc.drawImage(dincanvas, 0, 0);
 
