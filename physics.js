@@ -22,8 +22,6 @@ import { timer } from "./render.js"
 
 const g = -9.8195 * 25;
 let input_cont;         /* Input context */
-const g = -9.8195 * 30; /* Acceleration of gravity */
-let velocity = 0;       /* Velocity */
 
 /***************
 ** MATH MODULE**
@@ -114,64 +112,62 @@ function isColliding(obj, Land, param) {
   let k = 0, dist_min = 1000000;
   if (x === NaN || y === NaN || x === undefined || y === undefined || w <= 0 || h <= 0) {
     return false;
+  }
+  let pixels = Land.getImageData(x, y, w, h).data;
+  let V = new vector(0, 0);
+  let flag = false;
 
-    let pixels = Land.getImageData(x, y, w, h).data;
-    let V = new vector(0, 0);
-    let flag = false;
+  // for (let i = 3; i < pixels.length; i += 4) {
+  //   if (pixels[i] > 0) {
+  //     const I = Math.floor(i / 4);
+  //     const rx = I % w;
+  //     const ry = Math.floor(I / w);
+  //     if (dist(new vector(x + rx, y + ry), new vector(x + w * 0.5, y + h * 0.5)) <= w * 0.5) {
+  //       flag = true, k++;
+  //       V = multvector(sumvectors(V, new vector(x + rx, y + ry)), 0.5)
+  //       if (obj.y + 3 * h / 4 < y + ry)
+  //         param.w = true;
+  //     }
+  //   }
+  // }
 
-    // for (let i = 3; i < pixels.length; i += 4) {
-    //   if (pixels[i] > 0) {
-    //     const I = Math.floor(i / 4);
-    //     const rx = I % w;
-    //     const ry = Math.floor(I / w);
-    //     if (dist(new vector(x + rx, y + ry), new vector(x + w * 0.5, y + h * 0.5)) <= w * 0.5) {
-    //       flag = true, k++;
-    //       V = multvector(sumvectors(V, new vector(x + rx, y + ry)), 0.5)
-    //       if (obj.y + 3 * h / 4 < y + ry)
-    //         param.w = true;
-    //     }
-    //   }
-    // }
+  for (let i = 3; i < pixels.length; i += 4) {
+    if (pixels[i] > 0) {
+      const I = Math.floor(i / 4);
+      const rx = I % w;
+      const ry = Math.floor(I / w);
+      const Rp = dist(new vector(x + rx, y + ry), r)
 
-    for (let i = 3; i < pixels.length; i += 4) {
-      if (pixels[i] > 0) {
-        const I = Math.floor(i / 4);
-        const rx = I % w;
-        const ry = Math.floor(I / w);
-        const Rp = dist(new vector(x + rx, y + ry), r)
-
-        if (Rp <= w * 0.5) {
-          flag = true;
-          if (Rp < dist_min)
-            dist_min = Rp, V.x = x + rx, V.y = y + ry;
-          if (obj.y + 3 * h / 4 < y + ry)
-            param.w = true;
-        }
+      if (Rp <= w * 0.5) {
+        flag = true;
+        if (Rp < dist_min)
+          dist_min = Rp, V.x = x + rx, V.y = y + ry;
+        if (obj.y + 3 * h / 4 < y + ry)
+          param.w = true;
       }
     }
-
-    let BC = multvector(subvectors(V, r), ((w / 2) / lenvector(subvectors(V, r)) - 1.06))
-
-    param.x = -BC.x
-    param.y = -BC.y
-    param.z = k;
-
-    return flag;
-  } /* End of 'isColliding' function */
-
-  /* Init physics function.
-   * ARGUMENTS:
-   *   None.
-   * RETURNS:
-   *   (VOID) None.
-   */
-  export function physics_init() {
-    input_cont = new input(stc);
   }
 
-  let velocity_y = 0;
+  let BC = multvector(subvectors(V, r), ((w / 2) / lenvector(subvectors(V, r)) - 1.06))
 
+  param.x = -BC.x
+  param.y = -BC.y
+  param.z = k;
+
+  return flag;
+} /* End of 'isColliding' function */
+
+/* Init physics function.
+  * ARGUMENTS:
+  *   None.
+  * RETURNS:
+  *   (VOID) None.
+  */
+export function physics_init() {
+  input_cont = new input(stc);
 } /* End of 'physics_init' function */
+
+let velocity_y = 0;
 
 /* Enable simulation function.
  * ARGUMENTS:
@@ -187,8 +183,8 @@ export function simulation(obj_1, land) {
   let R1 = new vector(obj_1.x + obj_1.width * 0.5, obj_1.y + obj_1.height * 0.5);
   let a = 0;
 
-  obj_1.x -= input_cont.keys['KeyA']
-  obj_1.x += input_cont.keys['KeyD']
+  obj_1.x -= 2 * input_cont.keys['KeyA']
+  obj_1.x += 2 * input_cont.keys['KeyD']
 
   if (isColliding(obj_1, land, param)) {
     if (param.w == true)
@@ -196,7 +192,7 @@ export function simulation(obj_1, land) {
     let N = new vector(param.x, param.y)
     obj_1.x += N.x, obj_1.y += N.y;
     if (input_cont.keysClick['Space'] == 1 && param.w == true) {
-      velocity_y -= 30 * g * timer.globalDeltaTime;
+      velocity_y -= 35 * g * timer.globalDeltaTime;
 
     }
   }
