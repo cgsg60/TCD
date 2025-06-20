@@ -9,7 +9,7 @@
  * PROGRAMMER  : CGSG'2024.
  *               Arsentev Artemy (AA4),
  *               Nechaev Vladimir (VN4).
- * LAST UPDATE : 18.06.2025
+ * LAST UPDATE : 19.06.2025
  * NOTE        : Module prefix 'tcd'.
  *
  * No part of this file may be changed without agreement of
