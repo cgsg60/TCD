@@ -9,7 +9,7 @@
  * PROGRAMMER  : CGSG'2024.
  *               Arsentev Artemy (AA4),
  *               Nechaev Vladimir (VN4).
- * LAST UPDATE : 18.06.2025
+ * LAST UPDATE : 20.06.2025
  * NOTE        : Module prefix 'tcd'.
  *
  * No part of this file may be changed without agreement of
@@ -20,17 +20,15 @@ import { Timer } from "./timer.js";
 import { simulation } from "./physics.js";
 import { physics_init } from "./physics.js";
 
-let dyn;         /* dynamic canvas context */
-let ground, ava; /* temmoprary objects */
-export let stc;  /* static canvac context*/
+let Player = JSON.parse(sessionStorage.getItem('tcd_player')); /* Client player */
+let dyn;                                                       /* dynamic canvas context */
+let ground, ava;                                               /* temmoprary objects */
+export let stc;                                                /* static canvac context*/
 
-let player = {
-  x: 500,     /* position by X axis */
-  y: 500,     /* position by Y axis */
-  width: 50,  /* hitbox width */
-  height: 50, /* hitbox height */
-  img: ava    /* player image */
-}
+let spriteSheet = new Image(); /* Anim sprite */
+spriteSheet.src = 'anim.png';
+ava = new Image();             /* Gravatar ctx */
+ava.src = Player.gravatarCTX;
 
 class Resources {
   constructor(name, x, y, w, h, ctx) {
@@ -54,6 +52,24 @@ class Resources {
 }
 
 export let timer = new Timer() /* Timer */
+
+/* Draw animation function.
+ * ARGUMENTS:
+ *   None.
+ * RETURNS:
+ *   (VOID) None.
+ */
+function drawAnim() {
+    let currentFrame = 0; 
+    stc.clearRect(0, 0, stc.width, stc.height);
+    stc.drawImage(spriteSheet,
+        currentFrame * 67, 0,
+        67, 54, 
+        Player.x - 7, Player.y,
+        67, 54 
+    );
+    currentFrame = (currentFrame + 1) % 4;
+} /* End of 'drawAnim' function */
 
 /* Init graphics function.
  * ARGUMENTS:
@@ -82,6 +98,10 @@ export function initGFX(canvas, dyncanvas) {
     ground = document.getElementById("land1");
     dyn.drawImage(ground, 0, 0, 1900, 900);
   };
+    spriteSheet.onload = function() {
+      setInterval(drawAnim(), 300000);
+   };
+
 } /* End of 'initGFX' function */
 
 /* Draw scene function.
@@ -101,21 +121,23 @@ export function drawScene(canvas, dyncanvas) {
   dyn.clearRect(0, 0, canvas.width, canvas.height);
 
   /* Enable player simulation module */
-  simulation(player, dyn);
+  simulation(Player, dyn);
 
   /* Set static background image */
   let img = document.getElementById("background");
   stc.drawImage(img, 0, 0, 1900, 900);
 
   /* Set static player image */
-  player.img = document.getElementById("avatar");
   stc.beginPath();
-  stc.arc(player.x + player.width * 0.5, player.y + player.height * 0.5, player.width * 0.5, 0, Math.PI * 2);
+  stc.arc(Player.x + Player.width * 0.5, Player.y + Player.height * 0.5, Player.width * 0.5, 0, Math.PI * 2);
   stc.closePath();
   stc.save();
   stc.clip();
-  stc.drawImage(player.img, player.x, player.y, player.width, player.height);
+  stc.drawImage(ava, Player.x, Player.y, Player.width, Player.height);
   stc.restore();
+
+  setInterval(drawAnim(), 30000)
+
   /*
     stc.beginPath();
     stc.arc(x, 100, 25, 0, Math.PI * 2);
