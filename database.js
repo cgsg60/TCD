@@ -81,7 +81,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const username = document.getElementById('username').value;
-    let player = new Players(username, 500, 500, 50, 50);
+    let player = new Players(username, 500, 490, 50, 50);
 
     document.getElementById('username-error').style.display = 'none';
 
