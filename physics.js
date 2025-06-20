@@ -20,9 +20,8 @@ import { input } from "./input.js";
 import { stc } from "./render.js"
 import { timer } from "./render.js"
 
+const g = -9.8195 * 25;
 let input_cont;         /* Input context */
-const g = -9.8195 * 30; /* Acceleration of gravity */
-let velocity = 0;       /* Velocity */
 
 /***************
 ** MATH MODULE**
@@ -108,45 +107,67 @@ function dist(V1, V2) {
  * RETURNS:
  *   (BOOL) flag.
  */
-function isColliding(obj, Land, avgpoint) {
-  let x = Math.round(obj.x), y = Math.round(obj.y), w = Math.round(obj.width), h = Math.round(obj.height);
-
-  if (x == undefined || y == undefined || w <= 0 || h <= 0) {
-    console.error("underfined variables in function 'isColliding'");
+function isColliding(obj, Land, param) {
+  let x = Math.round(obj.x), y = Math.round(obj.y), w = Math.round(obj.width), h = Math.round(obj.height), r = new vector(x + w * 0.5, y + h * 0.5);
+  let k = 0, dist_min = 1000000;
+  if (x === NaN || y === NaN || x === undefined || y === undefined || w <= 0 || h <= 0) {
+    return false;
   }
-
   let pixels = Land.getImageData(x, y, w, h).data;
   let V = new vector(0, 0);
   let flag = false;
+
+  // for (let i = 3; i < pixels.length; i += 4) {
+  //   if (pixels[i] > 0) {
+  //     const I = Math.floor(i / 4);
+  //     const rx = I % w;
+  //     const ry = Math.floor(I / w);
+  //     if (dist(new vector(x + rx, y + ry), new vector(x + w * 0.5, y + h * 0.5)) <= w * 0.5) {
+  //       flag = true, k++;
+  //       V = multvector(sumvectors(V, new vector(x + rx, y + ry)), 0.5)
+  //       if (obj.y + 3 * h / 4 < y + ry)
+  //         param.w = true;
+  //     }
+  //   }
+  // }
 
   for (let i = 3; i < pixels.length; i += 4) {
     if (pixels[i] > 0) {
       const I = Math.floor(i / 4);
       const rx = I % w;
       const ry = Math.floor(I / w);
-      if (dist(new vector(x + rx, y + ry), new vector(x + w * 0.5, y + h * 0.5)) <= w * 0.5) {
+      const Rp = dist(new vector(x + rx, y + ry), r)
+
+      if (Rp <= w * 0.5) {
         flag = true;
-        V = multvector(sumvectors(V, new vector(x + rx, y + ry)), 0.5)
+        if (Rp < dist_min)
+          dist_min = Rp, V.x = x + rx, V.y = y + ry;
+        if (obj.y + 3 * h / 4 < y + ry)
+          param.w = true;
       }
     }
   }
 
-  avgpoint.x = V.x;
-  avgpoint.y = V.y;
-  avgpoint = V;
+  let BC = multvector(subvectors(V, r), ((w / 2) / lenvector(subvectors(V, r)) - 1.06))
+
+  param.x = -BC.x
+  param.y = -BC.y
+  param.z = k;
 
   return flag;
 } /* End of 'isColliding' function */
 
 /* Init physics function.
- * ARGUMENTS:
- *   None.
- * RETURNS:
- *   (VOID) None.
- */
+  * ARGUMENTS:
+  *   None.
+  * RETURNS:
+  *   (VOID) None.
+  */
 export function physics_init() {
   input_cont = new input(stc);
 } /* End of 'physics_init' function */
+
+let velocity_y = 0;
 
 /* Enable simulation function.
  * ARGUMENTS:
@@ -158,30 +179,28 @@ export function physics_init() {
  *   (VOID) None.
  */
 export function simulation(obj_1, land) {
-  let avgV = new vector(0, 0)
+  let param = { x: 0, y: 0, z: 0, w: false }
   let R1 = new vector(obj_1.x + obj_1.width * 0.5, obj_1.y + obj_1.height * 0.5);
   let a = 0;
 
-  obj_1.x -= 2 * input_cont.keys['KeyA'];
-  obj_1.x += 2 * input_cont.keys['KeyD'];
-  obj_1.y -= 2 * input_cont.keys['KeyW'];
-  obj_1.y += 2 * input_cont.keys['KeyS'];
+  obj_1.x -= 2 * input_cont.keys['KeyA']
+  obj_1.x += 2 * input_cont.keys['KeyD']
 
-  for (let i = 0; i < 52; i++) {
-    if (isColliding(obj_1, land, avgV)) {
-      let N = subvectors(R1, avgV)
-      velocity = 0;
-      N = multvector(N, 0.5 / lenvector(N))
-      obj_1.x += N.x, obj_1.y += N.y;
-      if (input_cont.keysClick['Space'] == 1) {
-        velocity -= 50 * g * timer.globalDeltaTime;
-      }
+  if (isColliding(obj_1, land, param)) {
+    if (param.w == true)
+      velocity_y = 0;
+    let N = new vector(param.x, param.y)
+    obj_1.x += N.x, obj_1.y += N.y;
+    if (input_cont.keysClick['Space'] == 1 && param.w == true) {
+      velocity_y -= 35 * g * timer.globalDeltaTime;
+
     }
   }
-  velocity += g * timer.globalDeltaTime;
-  obj_1.y -= velocity * timer.globalDeltaTime;
 
-  console.log("velocity:", velocity, "   acceleration:", a)
-} /* End of 'simulation' function */
+  velocity_y += g * timer.globalDeltaTime;
+  obj_1.y -= velocity_y * timer.globalDeltaTime;
+
+  console.log("velocity:", velocity_y)
+}
 
 /* END OF 'physics.js' FILE */
