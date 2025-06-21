@@ -21,7 +21,7 @@ import { stc } from "./render.js"
 import { timer } from "./render.js"
 
 const g = -9.8195 * 25;
-let input_cont;         /* Input context */
+export let input_cont;         /* Input context */
 
 /***************
 ** MATH MODULE**
@@ -107,7 +107,7 @@ function dist(V1, V2) {
  * RETURNS:
  *   (BOOL) flag.
  */
-function isColliding(obj, Land, param) {
+export function isColliding(obj, Land, param) {
   let x = Math.round(obj.x), y = Math.round(obj.y), w = Math.round(obj.width), h = Math.round(obj.height), r = new vector(x + w * 0.5, y + h * 0.5);
   let k = 0, dist_min = 1000000;
   if (x === NaN || y === NaN || x === undefined || y === undefined || w <= 0 || h <= 0) {
@@ -139,7 +139,7 @@ function isColliding(obj, Land, param) {
       const Rp = dist(new vector(x + rx, y + ry), r)
 
       if (Rp <= w * 0.5) {
-        flag = true;
+        flag = true;  
         if (Rp < dist_min)
           dist_min = Rp, V.x = x + rx, V.y = y + ry;
         if (obj.y + 3 * h / 4 < y + ry)
@@ -179,7 +179,7 @@ let velocity_y = 0;
  *   (VOID) None.
  */
 export function simulation(obj_1, land) {
-  let param = { x: 0, y: 0, z: 0, w: false }
+  let param = { x: 0, y: 0, z: 0, w: false, r: false}
   let R1 = new vector(obj_1.x + obj_1.width * 0.5, obj_1.y + obj_1.height * 0.5);
   let a = 0;
 
@@ -197,10 +197,40 @@ export function simulation(obj_1, land) {
     }
   }
 
+  
   velocity_y += g * timer.globalDeltaTime;
   obj_1.y -= velocity_y * timer.globalDeltaTime;
 
-  console.log("velocity:", velocity_y)
+
+  let dtime = timer.globalTime - obj_1.weapon.projectiles.time
+
+  console.log("dtime:", dtime);
+ 
+  if (obj_1.weapon.projectiles.enabled === true) {
+
+    let param1 = { x: 0, y: 0, z: 0, w: false, r: false };
+
+    const p = obj_1.weapon.projectiles;
+      
+      /* Ballistic movement */
+    p.x = obj_1.weapon.projectiles.sx + p.vx * Math.cos(p.angle) * dtime;
+    p.y = obj_1.weapon.projectiles.sy + p.vy * Math.sin(p.angle) * dtime + (-g * dtime * dtime) / 2;
+
+    const obj = {x: p.x, y: p.y, width: p.radius * 2, height: p.radius * 2};
+
+    if (isColliding(obj, land, param1)) {
+      obj_1.weapon.explode(p.x, p.y);
+      obj_1.weapon.projectiles.enabled = false;
+    }               
+  }
+  if (obj_1.weapon.projectiles.enabled === true && dtime > 4) 
+    obj_1.weapon.projectiles.enabled = false;
+ // Проверка столкновения с врагом
+  /*const distToEnemy = Math.sqrt((p.x - enemy.x) ** 2 + (p.y - enemy.y) ** 2);
+  if (distToEnemy < p.radius + enemy.radius) {
+      this.explode(p.x, p.y);
+      enemy.health -= this.damage;
+      this.projectiles.splice(i, 1);*/
 }
 
 /* END OF 'physics.js' FILE */
