@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Баллистическая пушка</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; background: #87CEEB; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+
+        // Игрок
+        const player = {
+            x: 100,
+            y: 300,
+            radius: 20,
+            health: 100,
+            draw() {
+                ctx.fillStyle = 'blue';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Полоска здоровья
+                ctx.fillStyle = 'red';
+                ctx.fillRect(this.x - 20, this.y - 30, 40, 5);
+                ctx.fillStyle = 'green';
+                ctx.fillRect(this.x - 20, this.y - 30, 40 * (this.health / 100), 5);
+            }
+        };
+
+        // Враг
+        const enemy = {
+            x: 700,
+            y: 300,
+            radius: 25,
+            health: 100,
+            draw() {
+                ctx.fillStyle = 'red';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'red';
+                ctx.fillRect(this.x - 25, this.y - 35, 50, 5);
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(this.x - 25, this.y - 35, 50 * (this.health / 100), 5);
+            }
+        };
+
+        // Террейн (земля)
+        const terrain = {
+            points: [],
+            init() {
+                for (let x = 0; x <= canvas.width; x += 10) {
+                    const y = 400 + Math.sin(x * 0.02) * 50;
+                    this.points.push({ x, y });
+                }
+            },
+            draw() {
+                ctx.fillStyle = '#8B4513';
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height);
+                for (const point of this.points) {
+                    ctx.lineTo(point.x, point.y);
+                }
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.closePath();
+                ctx.fill();
+            },
+            // Взрыв в точке (удаляет землю в радиусе)
+            explode(explosionX, explosionY, radius) {
+                for (let i = 0; i < this.points.length; i++) {
+                    const point = this.points[i];
+                    const dist = Math.sqrt((point.x - explosionX) ** 2 + (point.y - explosionY) ** 2);
+                    
+                    if (dist < radius) {
+                        // Поднимаем точку вверх (имитация взрыва)
+                        point.y += (radius - dist) * 0.5;
+                        if (point.y < 0) point.y = 0;
+                    }
+                }
+            }
+        };
+        terrain.init();
+
+        // Пушка
+        class Cannon {
+            constructor() {
+                this.projectiles = [];
+                this.firePower = 16;
+                this.gravity = 0.3;
+                this.explosionRadius = 50;
+                this.damage = 25;
+            }
+
+            fire(startX, startY, targetX, targetY) {
+                // Вычисляем направление
+                const dx = targetX - startX;
+                const dy = targetY - startY;
+                const angle = Math.atan2(dy, dx);
+                
+                this.projectiles.push({
+                    x: startX,
+                    y: startY,
+                    vx: Math.cos(angle) * this.firePower,
+                    vy: Math.sin(angle) * this.firePower,
+                    radius: 8
+                });
+            }
+
+            update() {
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const p = this.projectiles[i];
+                    
+                    // Движение снаряда
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += this.gravity;
+
+                    // Проверка столкновения с землей
+                    for (let j = 0; j < terrain.points.length - 1; j++) {
+                        const seg = { 
+                            x1: terrain.points[j].x, 
+                            y1: terrain.points[j].y,
+                            x2: terrain.points[j+1].x,
+                            y2: terrain.points[j+1].y
+                        };
+                        
+                        if (this.lineCircleCollision(seg, p)) {
+                            this.explode(p.x, p.y);
+                            this.projectiles.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    // Проверка столкновения с врагом
+                    const distToEnemy = Math.sqrt((p.x - enemy.x) ** 2 + (p.y - enemy.y) ** 2);
+                    if (distToEnemy < p.radius + enemy.radius) {
+                        this.explode(p.x, p.y);
+                        enemy.health -= this.damage;
+                        this.projectiles.splice(i, 1);
+                    }
+                }
+            }
+
+
+            
+                // Разрушение земли
+                terrain.explode(x, y, this.explosionRadius);
+            }
+
+            lineCircleCollision(seg, circle) {
+                // Упрощенная проверка столкновения линии и круга
+                const dist = this.pointToLineDist(circle.x, circle.y, seg.x1, seg.y1, seg.x2, seg.y2);
+                return dist < circle.radius;
+            }
+
+            pointToLineDist(x, y, x1, y1, x2, y2) {
+                const A = x - x1;
+                const B = y - y1;
+                const C = x2 - x1;
+                const D = y2 - y1;
+
+                const dot = A * C + B * D;
+                const len_sq = C * C + D * D;
+                let param = -1;
+                if (len_sq !== 0) param = dot / len_sq;
+
+                let xx, yy;
+                if (param < 0) {
+                    xx = x1;
+                    yy = y1;
+                } else if (param > 1) {
+                    xx = x2;
+                    yy = y2;
+                } else {
+                    xx = x1 + param * C;
+                    yy = y1 + param * D;
+                }
+
+                return Math.sqrt((x - xx) ** 2 + (y - yy) ** 2);
+            }
+
+            draw() {
+                ctx.fillStyle = 'black';
+                for (const p of this.projectiles) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Взрывы (визуальные эффекты)
+        const explosions = [];
+        function updateExplosions() {
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                const e = explosions[i];
+                e.radius += 2;
+                e.alpha -= 0.02;
+                
+                if (e.alpha <= 0) {
+                    explosions.splice(i, 1);
+                }
+            }
+        }
+
+        function drawExplosions() {
+            for (const e of explosions) {
+                ctx.strokeStyle = `rgba(255, 165, 0, ${e.alpha})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.fillStyle = `rgba(255, 100, 0, ${e.alpha * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.radius * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const cannon = new Cannon();
+
+        // Обработка клика (выстрел)
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            cannon.fire(player.x, player.y, mouseX, mouseY);
+        });
+
+        // Игровой цикл
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Рисуем небо
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            terrain.draw();
+            player.draw();
+            enemy.draw();
+            
+            cannon.update();
+            cannon.draw();
+            
+            updateExplosions();
+            drawExplosions();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
