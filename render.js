@@ -19,11 +19,16 @@
 import { Timer } from "./timer.js";
 import { simulation } from "./physics.js";
 import { physics_init } from "./physics.js";
-
+import { isColliding } from "./physics.js";
+import { input_cont } from "./physics.js";
 let Player = JSON.parse(sessionStorage.getItem('tcd_player')); /* Client player */
 let dyn;                                                       /* dynamic canvas context */
 let ground, ava;                                               /* temmoprary objects */
+
 export let stc;                                                /* static canvac context*/
+export let timer = new Timer() /* Timer */
+
+let maincanvas = document.getElementById("dynamic-canvas");;
 
 let spriteSheet = new Image(); /* Anim sprite */
 spriteSheet.src = 'anim.png';
@@ -51,7 +56,81 @@ class Resources {
   }
 }
 
-export let timer = new Timer() /* Timer */
+class Cannon {
+    constructor() {
+      this.projectiles = {};
+      this.firePower = 400;
+      this.gravity = 0.3;
+      this.explosionRadius = 30;
+      this.damage = 13;
+    }
+
+    fire(startX, startY, targetX, targetY) {
+      let Dx = targetX - startX;
+      let Dy = targetY - startY;
+      let d = Math.sqrt(Dx * Dx + Dy * Dy);
+
+      let sine = Dy / d;
+      let cosine = Dx / d;
+
+/*      A = atan2(sine, cosine);
+
+      for (i = 0; i < 7; i++)
+      {
+        pnts1[i].x = (LONG)(Cx + pnts[i].x * cos(A) - pnts[i].y * sin(A));
+        pnts1[i].y = (LONG)(Cy + pnts[i].x * sin(A) + pnts[i].y * cos(A));
+      }
+      const dx = targetX - startX;
+      const dy = targetY - startY;*/
+      const angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
+      
+      this.projectiles = ({
+        x: 0,
+        y: 0,
+        sx: startX,
+        sy: startY,
+        vx: this.firePower,
+        vy: this.firePower,
+        angle: -angle,
+        radius: 8,
+        time: 0,
+        enabled: false,
+        });
+    }
+
+    explode(x, y) {
+      // dyn.beginPath();
+      // dyn.arc(x, y, this.explosionRadius, 0, Math.PI * 2);
+      // dyn.clip();
+      // dyn.closePath();
+      // dyn.clearRect(0, 0, maincanvas.width, maincanvas.height);
+      dyn.clearRect(x - this.explosionRadius, y - this.explosionRadius, this.explosionRadius * 2, this.explosionRadius * 2);
+    }
+}
+
+let cannon = new Cannon();
+Player.weapon = cannon;
+cannon.fire(0, 0, 0, 0);
+
+// Бэууу дамашний
+maincanvas.addEventListener('click', (e) => {
+
+  if (cannon.projectiles.enabled === false)
+  {
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+    cannon.fire(Player.x + Player.width / 2, Player.y + Player.height / 2, mouseX, mouseY);
+    cannon.projectiles.time = timer.globalTime;
+    cannon.projectiles.enabled = true;
+    cannon.projectiles.sx = Player.x + Player.width / 2;
+    cannon.projectiles.sy = Player.y + Player.height / 2;
+    console.log("angle:", cannon.projectiles.angle, "mousex:", mouseX, "mousey:", mouseY);
+    console.log("Бэууу дамашний!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  }
+});
+
+let currentFrame = 0; 
+let oldt = 0;
 
 /* Draw animation function.
  * ARGUMENTS:
@@ -60,15 +139,19 @@ export let timer = new Timer() /* Timer */
  *   (VOID) None.
  */
 function drawAnim() {
-    let currentFrame = 0; 
-    stc.clearRect(0, 0, stc.width, stc.height);
+  let t = timer.globalTime;
+  
+  stc.clearRect(0, 0, stc.width, stc.height);
     stc.drawImage(spriteSheet,
-        currentFrame * 67, 0,
+        currentFrame * 71, 0,
         67, 54, 
         Player.x - 7, Player.y,
         67, 54 
     );
-    currentFrame = (currentFrame + 1) % 4;
+    if (t - oldt > 0.3) {
+      currentFrame = (currentFrame + 1) % 4;
+      oldt = t;
+    }
 } /* End of 'drawAnim' function */
 
 /* Init graphics function.
@@ -136,7 +219,7 @@ export function drawScene(canvas, dyncanvas) {
   stc.drawImage(ava, Player.x, Player.y, Player.width, Player.height);
   stc.restore();
 
-  setInterval(drawAnim(), 30000)
+  drawAnim();
 
   /*
     stc.beginPath();
@@ -152,6 +235,14 @@ export function drawScene(canvas, dyncanvas) {
   stc.globalCompositeOperation = 'source-in';
 
   stc.globalCompositeOperation = 'source-over';*/
+
+  /* draw cannon */
+  if (Player.weapon.projectiles.enabled === true) {
+    stc.drawImage(ava, Player.weapon.projectiles.x, Player.weapon.projectiles.y, 10, 10);
+  }
+  /*updateExplosions();
+  drawExplosions();*/
+
 
   window.requestAnimationFrame(drawScene);
 } /* End of 'drawScene' function */
