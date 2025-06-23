@@ -9,7 +9,6 @@ const port = 8002;
 
 function myMiddleware(req, res, next) {
 
-  req.url = '../client/client.js'
   console.log(`Request for ${req.url}`);
   next();
 }
@@ -33,7 +32,7 @@ app.use(function (req, res, next) {
   }
   next(); // <-- important!
 });
-app.use(express.static("."));
+app.use(express.static("client"));
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send("Something broke!");
@@ -47,8 +46,7 @@ wss.on("connection", (ws) => {
   let messageIndex = 0;
   console.log("Connection opened");
   ws.on("message", (message) => {
-    console.log(`message received: ${message}`);
-    ws.send(`Hello again from server ${messageIndex}`);
+    ws.send(message);
     messageIndex++;
   });
 
