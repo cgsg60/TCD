@@ -21,14 +21,13 @@ import { simulation } from "./physics.js";
 import { physics_init } from "./physics.js";
 import { isColliding } from "./physics.js";
 import { input_cont } from "./physics.js";
-import { push_player } from ".//client.js"
-import { pull_player } from ".//client.js"
+import { pull_player } from "./client.js"
 
-let Player = JSON.parse(sessionStorage.getItem('tcd_player')); /* Client player */
-let Enemy = JSON.parse(sessionStorage.getItem('tcd_enemy'));   /* Client enemy */
+export let Player = JSON.parse(sessionStorage.getItem('tcd_player')); /* Client player */
+let Enemy = pull_player.data;
 
 let dyn;                                                       /* dynamic canvas context */
-let ground, ava;                                               /* temmoprary objects */
+let ground;                                               /* temmoprary objects */
 
 export let stc;                                                /* static canvac context*/
 export let timer = new Timer()                                 /* Timer */
@@ -37,8 +36,8 @@ let maincanvas = document.getElementById("dynamic-canvas");
 
 let spriteSheet = new Image();                                 /* Anim sprite */
 spriteSheet.src = 'anim.png';
-ava = new Image();                                             /* Gravatar ctx */
-ava.src = Player.gravatarCTX;
+Player.img = new Image();                                             /* Gravatar ctx */
+Player.img.src = Player.gravatarCTX;
 
 class Resources {
   constructor(name, x, y, w, h, ctx) {
@@ -87,7 +86,7 @@ class Cannon {
           }
           const dx = targetX - startX;
           const dy = targetY - startY;*/
-    const angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
+    let angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
 
     this.projectiles = ({
       x: 0,
@@ -138,7 +137,7 @@ class Harpoon {
     let d = Math.sqrt(Dx * Dx + Dy * Dy);
     let sine = Dy / d;
     let cosine = Dx / d;
-    const angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
+    angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
 
     // Начальная позиция гарпуна
     this.angle = -angle;
@@ -337,8 +336,6 @@ export function drawScene(canvas, dyncanvas) {
 
   timer.response();
 
-  Enemy = pull_player;
-
   stc.clearRect(0, 0, canvas.width, canvas.height);
   dyn.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -355,17 +352,25 @@ export function drawScene(canvas, dyncanvas) {
   stc.closePath();
   stc.save();
   stc.clip();
-  stc.drawImage(ava, Player.x, Player.y, Player.width, Player.height);
+  stc.drawImage(Player.img, Player.x, Player.y, Player.width, Player.height);
   stc.restore();
 
-  /* Set static player image */
-  stc.beginPath();
-  stc.arc(Enemy.x + Enemy.width * 0.5, Enemy.y + Enemy.height * 0.5, Enemy.width * 0.5, 0, Math.PI * 2);
-  stc.closePath();
-  stc.save();
-  stc.clip();
-  stc.drawImage(Enemy.src, Enemy.x, Enemy.y, Enemy.width, Enemy.height);
-  stc.restore();
+  /* Set static enemy image */
+
+  if (pull_player.data != undefined) {
+    Enemy = pull_player.data;
+
+    Enemy.img = new Image();
+    Enemy.img.src = Enemy.gravatarCTX;
+
+    stc.beginPath();
+    stc.arc(Enemy.x + Enemy.width * 0.5, Enemy.y + Enemy.height * 0.5, Enemy.width * 0.5, 0, Math.PI * 2);
+    stc.closePath();
+    stc.save();
+    stc.clip();
+    stc.drawImage(Enemy.img, Enemy.x, Enemy.y, Enemy.width, Enemy.height);
+    stc.restore();
+  }
 
   if (input_cont.moveflag)
     drawmoveAnim();
@@ -376,7 +381,7 @@ export function drawScene(canvas, dyncanvas) {
 
   /* draw cannon */
   if (Player.weapon.projectiles.enabled === true) {
-    stc.drawImage(ava, Player.weapon.projectiles.x, Player.weapon.projectiles.y, 10, 10);
+    stc.drawImage(Player.img, Player.weapon.projectiles.x, Player.weapon.projectiles.y, 10, 10);
   }
   /*updateExplosions();
   drawExplosions();*/
@@ -414,8 +419,6 @@ export function drawScene(canvas, dyncanvas) {
       stc.stroke();
     }
   }
-
-  push_player = Player;
 
   window.requestAnimationFrame(drawScene);
 } /* End of 'drawScene' function */
