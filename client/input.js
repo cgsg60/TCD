@@ -97,6 +97,10 @@ export class input {
     this.shiftKey = false;
     this.altKey = false;
     this.ctrlKey = false;
+    this.moveflag = false;
+    this.jumpflag = false;
+    this.weaponflag = true;
+    this.harpoonflag = false;
 
     this.isFirst = true;
   } /* End of 'constructor' function */
@@ -352,6 +356,19 @@ export class input {
     this.keys[e.code] = 1;
     this.keysClick[e.code] = !this.keysOld[e.code] && this.keys[e.code];
 
+   if (e.code == "KeyA" || e.code == "KeyD")
+     this.moveflag = true;
+   else if (e.code == "Space")
+     this.jumpflag = true;
+   if (e.code == "KeyQ"){
+     this.weaponflag = true;
+     this.harpoonflag = false;
+   }
+   else if (e.code == "KeyE") {
+     this.weaponflag = false;
+     this.harpoonflag = true;
+   }    
+
     this.shiftKey = e.shiftKey;
     this.altKey = e.altKey;
     this.ctrlKey = e.ctrlKey;
@@ -380,6 +397,11 @@ export class input {
     this.keysOld[e.code] = this.keys[e.code];
     this.keys[e.code] = 0;
     this.keysClick[e.code] = 0;
+
+   if (e.code == "KeyA" || e.code == "KeyD")
+     this.moveflag = false;
+   else if (e.code == "Space")
+     this.jumpflag = false;    
 
     this.shiftKey = e.shiftKey;
     this.altKey = e.altKey;

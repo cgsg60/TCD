@@ -21,18 +21,20 @@ import { simulation } from "./physics.js";
 import { physics_init } from "./physics.js";
 import { isColliding } from "./physics.js";
 import { input_cont } from "./physics.js";
+
 let Player = JSON.parse(sessionStorage.getItem('tcd_player')); /* Client player */
+let Enemy = JSON.parse(sessionStorage.getItem('tcd_enemy'));   /* Client enemy */
 let dyn;                                                       /* dynamic canvas context */
 let ground, ava;                                               /* temmoprary objects */
 
 export let stc;                                                /* static canvac context*/
-export let timer = new Timer() /* Timer */
+export let timer = new Timer()                                 /* Timer */
 
-let maincanvas = document.getElementById("dynamic-canvas");;
+let maincanvas = document.getElementById("dynamic-canvas");
 
-let spriteSheet = new Image(); /* Anim sprite */
+let spriteSheet = new Image();                                 /* Anim sprite */
 spriteSheet.src = 'anim.png';
-ava = new Image();             /* Gravatar ctx */
+ava = new Image();                                             /* Gravatar ctx */
 ava.src = Player.gravatarCTX;
 
 class Resources {
@@ -99,20 +101,118 @@ class Cannon {
     }
 
     explode(x, y) {
-      // dyn.beginPath();
-      // dyn.arc(x, y, this.explosionRadius, 0, Math.PI * 2);
-      // dyn.clip();
-      // dyn.closePath();
-      // dyn.clearRect(0, 0, maincanvas.width, maincanvas.height);
-      dyn.clearRect(x - this.explosionRadius, y - this.explosionRadius, this.explosionRadius * 2, this.explosionRadius * 2);
+     dyn.save();
+     dyn.globalCompositeOperation = 'destination-out';
+     dyn.beginPath();
+     dyn.arc(x, y, this.explosionRadius * 1.5, 0, Math.PI * 2);
+     dyn.fill();
+     dyn.restore();
+
+     //dyn.clearRect(x - this.explosionRadius, y - this.explosionRadius, this.explosionRadius * 2, this.explosionRadius * 2);
     }
 }
+
+class Harpoon {
+  constructor() {
+   this.x = Player.x,
+   this.y = Player.y,
+   this.width = 20,
+   this.height = 20,
+   this.angle = 0,
+   this.length = 0,
+   this.maxLength = 300,
+   this.speed = 10,
+   this.isFired = false,
+   this.isAttached = false,
+   this.attachedX = 0,
+   this.attachedY = 0,
+   this.color = '#2c3e50',
+   this.ropeColor = '#7f8c8d'
+ };
+ fireHarpoon(startX, startY, targetX, targetY) {
+   let Dx = targetX - startX;
+   let Dy = targetY - startY;
+   let d = Math.sqrt(Dx * Dx + Dy * Dy);
+   let sine = Dy / d;
+   let cosine = Dx / d;
+   const angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
+
+   // Начальная позиция гарпуна
+   this.angle = -angle;
+   this.x = Player.x;
+   this.y = Player.y;
+   this.length = 0;
+   this.isFired = true;
+   this.isAttached = false;
+ }
+ update() {
+   // Ограничение игрока в пределах canvas
+   //Player.x = Math.max(Player.radius, Math.min(maincanvas.width - Player.radius, Player.x));
+   //Player.y = Math.max(Player.radius, Math.min(maincanvas.height - Player.radius, Player.y));
+   // Обновление гарпуна
+   if (this.isFired) {
+    let param = { x: 0, y: 0, z: 0, w: false, r: false }
+    // Движение гарпуна
+    this.x += Math.cos(this.angle) * this.speed;
+    this.y += Math.sin(this.angle) * this.speed;
+    this.length += this.speed;
+    // collision
+    if (isColliding(this, dyn, param)) {
+      this.isAttached = true;
+      this.attachedX = this.x;
+      this.attachedY = this.y;
+    }
+    if (!this.isAttached) {
+      // Проверка максимальной длины
+      if (this.length >= this.maxLength) {
+          this.isFired = false;
+      }
+    } else {
+      // Притягивание игрока к точке зацепа
+      const dx = this.attachedX - Player.x;
+      const dy = this.attachedY - Player.y;
+
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance > 10) {
+          Player.x += dx * 0.05;
+          Player.y += dy * 0.05;
+      } else {
+          // Гарпун отцепляется, когда игрок близко
+          this.isFired = false;
+          this.isAttached = false;
+      }
+    }
+   }
+ }
+};
+
+let harpoon = new Harpoon(1, 1);
+Player.garpunchik = harpoon;
 
 let cannon = new Cannon();
 Player.weapon = cannon;
 cannon.fire(0, 0, 0, 0);
 
 // Бэууу дамашний
+maincanvas.addEventListener('click', (e) => {
+ if (Player.weapon.projectiles.enabled === false && input_cont.weaponflag == true)
+ {
+   const mouseX = e.clientX;
+   const mouseY = e.clientY;
+   cannon.fire(Player.x + Player.width / 2, Player.y + Player.height / 2, mouseX, mouseY);
+   cannon.projectiles.time = timer.globalTime;
+   cannon.projectiles.enabled = true;
+   cannon.projectiles.sx = Player.x + Player.width / 2;
+   cannon.projectiles.sy = Player.y + Player.height / 2;
+   console.log("angle:", cannon.projectiles.angle, "mousex:", mouseX, "mousey:", mouseY);
+ }
+ else if (input_cont.harpoonflag == true && Player.garpunchik.isFired == false) {
+   const mouseX = e.clientX;
+   const mouseY = e.clientY;
+   harpoon.fireHarpoon(Player.x + Player.width / 2, Player.y + Player.height / 2, mouseX, mouseY);
+ }
+});
+/*
 maincanvas.addEventListener('click', (e) => {
 
   if (cannon.projectiles.enabled === false)
@@ -127,32 +227,67 @@ maincanvas.addEventListener('click', (e) => {
     console.log("angle:", cannon.projectiles.angle, "mousex:", mouseX, "mousey:", mouseY);
     console.log("Бэууу дамашний!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   }
-});
+});*/
 
-let currentFrame = 0; 
+let currentFrame = 0;
 let oldt = 0;
-
-/* Draw animation function.
- * ARGUMENTS:
- *   None.
- * RETURNS:
- *   (VOID) None.
- */
-function drawAnim() {
-  let t = timer.globalTime;
-  
-  stc.clearRect(0, 0, stc.width, stc.height);
-    stc.drawImage(spriteSheet,
-        currentFrame * 71, 0,
-        67, 54, 
-        Player.x - 7, Player.y,
-        67, 54 
-    );
-    if (t - oldt > 0.3) {
-      currentFrame = (currentFrame + 1) % 4;
-      oldt = t;
-    }
-} /* End of 'drawAnim' function */
+/* Draw move animation function.
+* ARGUMENTS:
+*   None.
+* RETURNS:
+*   (VOID) None.
+*/
+function drawmoveAnim() {
+ let t = timer.globalTime;
+ stc.clearRect(0, 0, stc.width, stc.height);
+   stc.drawImage(spriteSheet,
+       currentFrame * 71, 0,
+       67, 54,
+       Player.x - 7, Player.y,
+       67, 54
+   );
+   if (t - oldt > 0.3) {
+     currentFrame = (currentFrame + 1) % 4;
+     oldt = t;
+   }
+} /* End of 'drawmoveAnim' function */
+let currentFrame1 = 0;
+let oldt1 = 0;
+/* Draw jump animation function.
+* ARGUMENTS:
+*   None.
+* RETURNS:
+*   (VOID) None.
+*/
+function drawjumpAnim() {
+ let t = timer.globalTime;
+ stc.clearRect(0, 0, stc.width, stc.height);
+   stc.drawImage(spriteSheet,
+       currentFrame1 * 71, 59,
+       67, 54,
+       Player.x - 7, Player.y,
+       67, 54
+   );
+   if (t - oldt1 > 0.3) {
+     currentFrame1 = (currentFrame1 + 1) % 4;
+     oldt1 = t;
+   }
+} /* End of 'drawjumpAnim' function */
+/* Draw idle animation function.
+* ARGUMENTS:
+*   None.
+* RETURNS:
+*   (VOID) None.
+*/
+function drawidleAnim() {
+ stc.clearRect(0, 0, stc.width, stc.height);
+   stc.drawImage(spriteSheet,
+       0, 0,
+       67, 54,
+       Player.x - 7, Player.y,
+       67, 54
+   );
+} /* End of 'drawidleAnim' function */
 
 /* Init graphics function.
  * ARGUMENTS:
@@ -182,7 +317,7 @@ export function initGFX(canvas, dyncanvas) {
     dyn.drawImage(ground, 0, 0, 1900, 900);
   };
     spriteSheet.onload = function() {
-      setInterval(drawAnim(), 300000);
+      setInterval(drawidleAnim(), 300000);
    };
 
 } /* End of 'initGFX' function */
@@ -219,22 +354,12 @@ export function drawScene(canvas, dyncanvas) {
   stc.drawImage(ava, Player.x, Player.y, Player.width, Player.height);
   stc.restore();
 
-  drawAnim();
-
-  /*
-    stc.beginPath();
-    stc.arc(x, 100, 25, 0, Math.PI * 2);
-    stc.closePath();
-    stc.clip();
-    stc.drawImage(img, x - 25, 100 - 25, 50, 50);
-  */
-  /*stc.beginPath();
-  stc.arc(150, 150, 100, 0, Math.PI * 2);
-  stc.fillStyle = 'black';
-  stc.fill();
-  stc.globalCompositeOperation = 'source-in';
-
-  stc.globalCompositeOperation = 'source-over';*/
+  if (input_cont.moveflag)
+    drawmoveAnim();
+  else if (input_cont.jumpflag)
+    drawjumpAnim();
+  else
+    drawidleAnim();
 
   /* draw cannon */
   if (Player.weapon.projectiles.enabled === true) {
@@ -243,6 +368,39 @@ export function drawScene(canvas, dyncanvas) {
   /*updateExplosions();
   drawExplosions();*/
 
+  Player.garpunchik.update();
+
+  /* draw garpunchik */
+  if (Player.garpunchik.isFired) {
+      // Веревка
+      stc.beginPath();
+      stc.moveTo(Player.x + Player.width / 2, Player.y + Player.height / 2);
+      if (Player.garpunchik.isAttached) {
+          stc.lineTo(Player.garpunchik.attachedX, Player.garpunchik.attachedY);
+      } else {
+          stc.lineTo(Player.garpunchik.x, Player.garpunchik.y);
+      }
+      stc.strokeStyle = Player.garpunchik.ropeColor;
+      stc.lineWidth = 2;
+      stc.stroke();
+      // Наконечник гарпуна
+      if (!Player.garpunchik.isAttached) {
+          stc.beginPath();
+          stc.arc(Player.garpunchik.x, Player.garpunchik.y, 5, 0, Math.PI * 2);
+          stc.fillStyle = Player.garpunchik.color;
+          stc.fill();
+          // Острие гарпуна
+          stc.beginPath();
+          stc.moveTo(Player.garpunchik.x, Player.garpunchik.y);
+          stc.lineTo(
+              Player.garpunchik.x + Math.cos(Player.garpunchik.angle) * 15,
+              Player.garpunchik.y + Math.sin(Player.garpunchik.angle) * 15
+          );
+          stc.strokeStyle = Player.garpunchik.color;
+          stc.lineWidth = 3;
+          stc.stroke();
+      }
+  }
 
   window.requestAnimationFrame(drawScene);
 } /* End of 'drawScene' function */

@@ -133,9 +133,10 @@ export function isColliding(obj, Land, param) {
 
   for (let i = 3; i < pixels.length; i += 4) {
     if (pixels[i] > 0) {
-      const I = Math.floor(i / 4);
+      const I =   Math.floor(i / 4);
       const rx = I % w;
-      const ry = Math.floor(I / w);
+      const ry = 
+      Math.floor(I / w);
       const Rp = dist(new vector(x + rx, y + ry), r)
 
       if (Rp <= w * 0.5) {
