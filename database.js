@@ -101,4 +101,4 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     window.location.href = "./game.html";    
 });
 
-/* END OF 'database.js' FILE */
+  /* END OF 'database.js' FILE */

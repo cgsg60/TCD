@@ -223,7 +223,14 @@ export function simulation(obj_1, land) {
 
     const obj = { x: p.x, y: p.y, width: p.radius * 2, height: p.radius * 2 };
 
-    if (isColliding(obj, land, param1)) {
+    /*let d = Math.sqrt((p.x - obj_1.x) * (p.x - obj_1.x) + (p.y - obj_1.y) * (p.y - obj_1.y));
+
+    if (d - obj_1.width <= obj_1.weapon.explosionRadius) {
+      obj_1.health -= 15;
+      obj_1.weapon.explode(p.x, p.y);
+      obj_1.weapon.projectiles.enabled = false;      
+    }
+    else*/ if (isColliding(obj, land, param1)) {
       obj_1.weapon.explode(p.x, p.y);
       obj_1.weapon.projectiles.enabled = false;
     }

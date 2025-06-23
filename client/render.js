@@ -101,14 +101,46 @@ class Cannon {
     }
 
     explode(x, y) {
-     dyn.save();
-     dyn.globalCompositeOperation = 'destination-out';
-     dyn.beginPath();
-     dyn.arc(x, y, this.explosionRadius * 1.5, 0, Math.PI * 2);
-     dyn.fill();
-     dyn.restore();
+      dyn.save();
+      dyn.globalCompositeOperation = 'destination-out';
+      dyn.beginPath();
+      dyn.arc(x, y, this.explosionRadius * 1.5, 0, Math.PI * 2);
+      dyn.fill();
+      dyn.restore();
+      
+      let d = Math.sqrt((x - Player.x) * (x - Player.x) + (y - Player.y) * (y - Player.y));
+      if (d - Player.width <= this.explosionRadius * 1.5) {
+        Player.health -= 15;
+      }
+    }
+}
 
-     //dyn.clearRect(x - this.explosionRadius, y - this.explosionRadius, this.explosionRadius * 2, this.explosionRadius * 2);
+// Взрывы (визуальные эффекты)
+let explosions = [];
+function updateExplosions() {
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        const e = explosions[i];
+        e.radius += 2;
+        e.alpha -= 0.02;
+        
+        if (e.alpha <= 0) {
+            explosions.splice(i, 1);
+        }
+    }
+}
+
+function drawExplosions() {
+    for (const e of explosions) {
+        ctx.strokeStyle = `rgba(255, 165, 0, ${e.alpha})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.fillStyle = `rgba(255, 100, 0, ${e.alpha * 0.5})`;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.radius * 0.7, 0, Math.PI * 2);
+        ctx.fill();
     }
 }
 
@@ -153,9 +185,7 @@ class Harpoon {
    if (this.isFired) {
     let param = { x: 0, y: 0, z: 0, w: false, r: false }
     // Движение гарпуна
-    this.x += Math.cos(this.angle) * this.speed;
-    this.y += Math.sin(this.angle) * this.speed;
-    this.length += this.speed;
+
     // collision
     if (isColliding(this, dyn, param)) {
       this.isAttached = true;
@@ -163,7 +193,9 @@ class Harpoon {
       this.attachedY = this.y;
     }
     if (!this.isAttached) {
-      // Проверка максимальной длины
+      this.x += Math.cos(this.angle) * this.speed;
+      this.y += Math.sin(this.angle) * this.speed;
+      this.length += this.speed;    
       if (this.length >= this.maxLength) {
           this.isFired = false;
       }
@@ -173,9 +205,9 @@ class Harpoon {
       const dy = this.attachedY - Player.y;
 
       const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance > 10) {
-          Player.x += dx * 0.05;
-          Player.y += dy * 0.05;
+      if (distance > 50) {
+          Player.x += (dx / distance) * 0.9 * this.speed;
+          Player.y += (dy / distance) * 0.9 * this.speed;
       } else {
           // Гарпун отцепляется, когда игрок близко
           this.isFired = false;
@@ -210,6 +242,9 @@ maincanvas.addEventListener('click', (e) => {
    const mouseX = e.clientX;
    const mouseY = e.clientY;
    harpoon.fireHarpoon(Player.x + Player.width / 2, Player.y + Player.height / 2, mouseX, mouseY);
+ }
+ else if (input_cont.harpoonflag == true && Player.garpunchik.isFired == true) {
+  Player.garpunchik.isFired == false;
  }
 });
 /*
@@ -338,6 +373,16 @@ export function drawScene(canvas, dyncanvas) {
   stc.clearRect(0, 0, canvas.width, canvas.height);
   dyn.clearRect(0, 0, canvas.width, canvas.height);
 
+  /* Infinity game */
+  if (Player.health <= 0 || Enemy.health <= 0) {
+    Player.x = 500;
+    Player.y = 500;
+    Player.health = 100;
+    Enemy.x = 700;
+    Enemy.y = 500;
+    Enemy.health = 100;
+  }
+
   /* Enable player simulation module */
   simulation(Player, dyn);
 
@@ -361,6 +406,17 @@ export function drawScene(canvas, dyncanvas) {
   else
     drawidleAnim();
 
+  stc.font = '14px Arial';
+  stc.fillStyle = '#FF5733';
+  stc.textAlign = 'center';
+  stc.textBaseline = 'middle';
+
+  stc.fillText(`${Player.health}`, Player.x + 25, Player.y - 15);
+  stc.strokeStyle = 'white';
+  stc.lineWidth = 1;
+  stc.strokeText(`${Player.health}`, Player.x + 25, Player.y - 15);
+
+
   /* draw cannon */
   if (Player.weapon.projectiles.enabled === true) {
     stc.drawImage(ava, Player.weapon.projectiles.x, Player.weapon.projectiles.y, 10, 10);
@@ -372,7 +428,7 @@ export function drawScene(canvas, dyncanvas) {
 
   /* draw garpunchik */
   if (Player.garpunchik.isFired) {
-      // Веревка
+      //rope
       stc.beginPath();
       stc.moveTo(Player.x + Player.width / 2, Player.y + Player.height / 2);
       if (Player.garpunchik.isAttached) {
@@ -383,13 +439,13 @@ export function drawScene(canvas, dyncanvas) {
       stc.strokeStyle = Player.garpunchik.ropeColor;
       stc.lineWidth = 2;
       stc.stroke();
-      // Наконечник гарпуна
+      //end
       if (!Player.garpunchik.isAttached) {
           stc.beginPath();
           stc.arc(Player.garpunchik.x, Player.garpunchik.y, 5, 0, Math.PI * 2);
           stc.fillStyle = Player.garpunchik.color;
           stc.fill();
-          // Острие гарпуна
+          //sharp end
           stc.beginPath();
           stc.moveTo(Player.garpunchik.x, Player.garpunchik.y);
           stc.lineTo(
@@ -400,6 +456,8 @@ export function drawScene(canvas, dyncanvas) {
           stc.lineWidth = 3;
           stc.stroke();
       }
+      updateExplosions();
+      drawExplosions();
   }
 
   window.requestAnimationFrame(drawScene);
