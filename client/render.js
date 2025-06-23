@@ -21,9 +21,12 @@ import { simulation } from "./physics.js";
 import { physics_init } from "./physics.js";
 import { isColliding } from "./physics.js";
 import { input_cont } from "./physics.js";
+import { push_player } from ".//client.js"
+import { pull_player } from ".//client.js"
 
 let Player = JSON.parse(sessionStorage.getItem('tcd_player')); /* Client player */
 let Enemy = JSON.parse(sessionStorage.getItem('tcd_enemy'));   /* Client enemy */
+
 let dyn;                                                       /* dynamic canvas context */
 let ground, ava;                                               /* temmoprary objects */
 
@@ -59,46 +62,46 @@ class Resources {
 }
 
 class Cannon {
-    constructor() {
-      this.projectiles = {};
-      this.firePower = 400;
-      this.gravity = 0.3;
-      this.explosionRadius = 30;
-      this.damage = 13;
-    }
+  constructor() {
+    this.projectiles = {};
+    this.firePower = 400;
+    this.gravity = 0.3;
+    this.explosionRadius = 30;
+    this.damage = 13;
+  }
 
-    fire(startX, startY, targetX, targetY) {
-      let Dx = targetX - startX;
-      let Dy = targetY - startY;
-      let d = Math.sqrt(Dx * Dx + Dy * Dy);
+  fire(startX, startY, targetX, targetY) {
+    let Dx = targetX - startX;
+    let Dy = targetY - startY;
+    let d = Math.sqrt(Dx * Dx + Dy * Dy);
 
-      let sine = Dy / d;
-      let cosine = Dx / d;
+    let sine = Dy / d;
+    let cosine = Dx / d;
 
-/*      A = atan2(sine, cosine);
+    /*      A = atan2(sine, cosine);
+    
+          for (i = 0; i < 7; i++)
+          {
+            pnts1[i].x = (LONG)(Cx + pnts[i].x * cos(A) - pnts[i].y * sin(A));
+            pnts1[i].y = (LONG)(Cy + pnts[i].x * sin(A) + pnts[i].y * cos(A));
+          }
+          const dx = targetX - startX;
+          const dy = targetY - startY;*/
+    const angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
 
-      for (i = 0; i < 7; i++)
-      {
-        pnts1[i].x = (LONG)(Cx + pnts[i].x * cos(A) - pnts[i].y * sin(A));
-        pnts1[i].y = (LONG)(Cy + pnts[i].x * sin(A) + pnts[i].y * cos(A));
-      }
-      const dx = targetX - startX;
-      const dy = targetY - startY;*/
-      const angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
-      
-      this.projectiles = ({
-        x: 0,
-        y: 0,
-        sx: startX,
-        sy: startY,
-        vx: this.firePower,
-        vy: this.firePower,
-        angle: -angle,
-        radius: 8,
-        time: 0,
-        enabled: false,
-        });
-    }
+    this.projectiles = ({
+      x: 0,
+      y: 0,
+      sx: startX,
+      sy: startY,
+      vx: this.firePower,
+      vy: this.firePower,
+      angle: -angle,
+      radius: 8,
+      time: 0,
+      enabled: false,
+    });
+  }
 
     explode(x, y) {
       dyn.save();
@@ -146,28 +149,28 @@ function drawExplosions() {
 
 class Harpoon {
   constructor() {
-   this.x = Player.x,
-   this.y = Player.y,
-   this.width = 20,
-   this.height = 20,
-   this.angle = 0,
-   this.length = 0,
-   this.maxLength = 300,
-   this.speed = 10,
-   this.isFired = false,
-   this.isAttached = false,
-   this.attachedX = 0,
-   this.attachedY = 0,
-   this.color = '#2c3e50',
-   this.ropeColor = '#7f8c8d'
- };
- fireHarpoon(startX, startY, targetX, targetY) {
-   let Dx = targetX - startX;
-   let Dy = targetY - startY;
-   let d = Math.sqrt(Dx * Dx + Dy * Dy);
-   let sine = Dy / d;
-   let cosine = Dx / d;
-   const angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
+    this.x = Player.x,
+      this.y = Player.y,
+      this.width = 20,
+      this.height = 20,
+      this.angle = 0,
+      this.length = 0,
+      this.maxLength = 300,
+      this.speed = 10,
+      this.isFired = false,
+      this.isAttached = false,
+      this.attachedX = 0,
+      this.attachedY = 0,
+      this.color = '#2c3e50',
+      this.ropeColor = '#7f8c8d'
+  };
+  fireHarpoon(startX, startY, targetX, targetY) {
+    let Dx = targetX - startX;
+    let Dy = targetY - startY;
+    let d = Math.sqrt(Dx * Dx + Dy * Dy);
+    let sine = Dy / d;
+    let cosine = Dx / d;
+    const angle = Math.atan2(cosine, sine) - Math.PI / 2.0;
 
    // Начальная позиция гарпуна
    this.angle = -angle;
@@ -198,11 +201,11 @@ class Harpoon {
       this.length += this.speed;    
       if (this.length >= this.maxLength) {
           this.isFired = false;
-      }
-    } else {
-      // Притягивание игрока к точке зацепа
-      const dx = this.attachedX - Player.x;
-      const dy = this.attachedY - Player.y;
+        }
+      } else {
+        // Притягивание игрока к точке зацепа
+        const dx = this.attachedX - Player.x;
+        const dy = this.attachedY - Player.y;
 
       const distance = Math.sqrt(dx * dx + dy * dy);
       if (distance > 50) {
@@ -212,10 +215,10 @@ class Harpoon {
           // Гарпун отцепляется, когда игрок близко
           this.isFired = false;
           this.isAttached = false;
+        }
       }
     }
-   }
- }
+  }
 };
 
 let harpoon = new Harpoon(1, 1);
@@ -273,18 +276,18 @@ let oldt = 0;
 *   (VOID) None.
 */
 function drawmoveAnim() {
- let t = timer.globalTime;
- stc.clearRect(0, 0, stc.width, stc.height);
-   stc.drawImage(spriteSheet,
-       currentFrame * 71, 0,
-       67, 54,
-       Player.x - 7, Player.y,
-       67, 54
-   );
-   if (t - oldt > 0.3) {
-     currentFrame = (currentFrame + 1) % 4;
-     oldt = t;
-   }
+  let t = timer.globalTime;
+  stc.clearRect(0, 0, stc.width, stc.height);
+  stc.drawImage(spriteSheet,
+    currentFrame * 71, 0,
+    67, 54,
+    Player.x - 7, Player.y,
+    67, 54
+  );
+  if (t - oldt > 0.3) {
+    currentFrame = (currentFrame + 1) % 4;
+    oldt = t;
+  }
 } /* End of 'drawmoveAnim' function */
 let currentFrame1 = 0;
 let oldt1 = 0;
@@ -295,18 +298,18 @@ let oldt1 = 0;
 *   (VOID) None.
 */
 function drawjumpAnim() {
- let t = timer.globalTime;
- stc.clearRect(0, 0, stc.width, stc.height);
-   stc.drawImage(spriteSheet,
-       currentFrame1 * 71, 59,
-       67, 54,
-       Player.x - 7, Player.y,
-       67, 54
-   );
-   if (t - oldt1 > 0.3) {
-     currentFrame1 = (currentFrame1 + 1) % 4;
-     oldt1 = t;
-   }
+  let t = timer.globalTime;
+  stc.clearRect(0, 0, stc.width, stc.height);
+  stc.drawImage(spriteSheet,
+    currentFrame1 * 71, 59,
+    67, 54,
+    Player.x - 7, Player.y,
+    67, 54
+  );
+  if (t - oldt1 > 0.3) {
+    currentFrame1 = (currentFrame1 + 1) % 4;
+    oldt1 = t;
+  }
 } /* End of 'drawjumpAnim' function */
 /* Draw idle animation function.
 * ARGUMENTS:
@@ -315,13 +318,13 @@ function drawjumpAnim() {
 *   (VOID) None.
 */
 function drawidleAnim() {
- stc.clearRect(0, 0, stc.width, stc.height);
-   stc.drawImage(spriteSheet,
-       0, 0,
-       67, 54,
-       Player.x - 7, Player.y,
-       67, 54
-   );
+  stc.clearRect(0, 0, stc.width, stc.height);
+  stc.drawImage(spriteSheet,
+    0, 0,
+    67, 54,
+    Player.x - 7, Player.y,
+    67, 54
+  );
 } /* End of 'drawidleAnim' function */
 
 /* Init graphics function.
@@ -351,9 +354,9 @@ export function initGFX(canvas, dyncanvas) {
     ground = document.getElementById("land1");
     dyn.drawImage(ground, 0, 0, 1900, 900);
   };
-    spriteSheet.onload = function() {
-      setInterval(drawidleAnim(), 300000);
-   };
+  spriteSheet.onload = function () {
+    setInterval(drawidleAnim(), 300000);
+  };
 
 } /* End of 'initGFX' function */
 
@@ -369,6 +372,8 @@ export function initGFX(canvas, dyncanvas) {
 export function drawScene(canvas, dyncanvas) {
 
   timer.response();
+
+  Enemy = pull_player;
 
   stc.clearRect(0, 0, canvas.width, canvas.height);
   dyn.clearRect(0, 0, canvas.width, canvas.height);
@@ -397,6 +402,15 @@ export function drawScene(canvas, dyncanvas) {
   stc.save();
   stc.clip();
   stc.drawImage(ava, Player.x, Player.y, Player.width, Player.height);
+  stc.restore();
+
+  /* Set static player image */
+  stc.beginPath();
+  stc.arc(Enemy.x + Enemy.width * 0.5, Enemy.y + Enemy.height * 0.5, Enemy.width * 0.5, 0, Math.PI * 2);
+  stc.closePath();
+  stc.save();
+  stc.clip();
+  stc.drawImage(Enemy.src, Enemy.x, Enemy.y, Enemy.width, Enemy.height);
   stc.restore();
 
   if (input_cont.moveflag)
@@ -459,6 +473,8 @@ export function drawScene(canvas, dyncanvas) {
       updateExplosions();
       drawExplosions();
   }
+
+  push_player = Player;
 
   window.requestAnimationFrame(drawScene);
 } /* End of 'drawScene' function */
