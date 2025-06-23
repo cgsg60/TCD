@@ -93,7 +93,11 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     } else {
       player.GravatarDefineEmail();
     } 
+
+    enemy = new Players("enemy", 700, 500, 50, 50);
+
     sessionStorage.setItem('tcd_player', JSON.stringify(player));
+    sessionStorage.setItem('tcd_enemy', JSON.stringify(enemy));
     window.location.href = "./game.html";    
 });
 
