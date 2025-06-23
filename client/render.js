@@ -226,7 +226,6 @@ maincanvas.addEventListener('click', (e) => {
     cannon.projectiles.sx = Player.x + Player.width / 2;
     cannon.projectiles.sy = Player.y + Player.height / 2;
     console.log("angle:", cannon.projectiles.angle, "mousex:", mouseX, "mousey:", mouseY);
-    console.log("Бэууу дамашний!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   }
 });*/
 
